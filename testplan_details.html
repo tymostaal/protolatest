@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mx-auto p-4">
+        <div class="bg-white p-4 rounded shadow-md mt-4">
+            <h2 class="text-lg font-bold mb-4">Review Status</h2>
+            <table class="table-auto w-full border-collapse">
+                <tbody>
+                    <tr class="border-b">
+                        <td class="font-bold p-2">STE:</td>
+                        <td class="p-2">{{ testplan.ste_status }}</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-bold p-2">PCE HW:</td>
+                        <td class="p-2">{{ testplan.pce_hw_status }}</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-bold p-2">PCE SW:</td>
+                        <td class="p-2">{{ testplan.pce_sw_status }}</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-bold p-2">PO:</td>
+                        <td class="p-2">{{ testplan.po_status }}</td>
+                    </tr>
+                    <tr class="border-b">
+                        <td class="font-bold p-2">PE:</td>
+                        <td class="p-2">{{ testplan.pe_status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <a href="{% url 'review_test_plan' testplan.id %}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-[#0F238C] mt-4 inline-block">Review Test Plan</a>
+        </div>
+        <!-- Full-width Greeting and Introductory Text -->
+        <div class="bg-white p-4 rounded shadow-md mb-4">
+            <h2 class="text-xl font-bold mb-4">Testplan Details</h2>
+            <p class="mb-2">Here are the details of the selected testplan.</p>
+
+            <!-- Buttons -->
+            <div class="flex space-x-2 mt-4">
+                <a href="{% url 'reservation_detail' uid=testplan.reservation.uid %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-[#0F238C]">Back to Reservation Details</a>
+                <a href="{% url 'edit_testplan' testplan.id %}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-[#0F238C]">Edit Testplan</a>
+            </div>
+        </div>
+
+        <!-- Two-column Layout for Details and Additional Content -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- Left Column: Testplan Details -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-bold mb-4">Testplan Detail</h2>
+                <table class="table-auto w-full border-collapse">
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Testplan Name:</td>
+                            <td class="p-2">{{ testplan.name }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Description:</td>
+                            <td class="p-2">{{ testplan.description }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Reservation:</td>
+                            <td class="p-2">{{ testplan.reservation }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Created At:</td>
+                            <td class="p-2">{{ testplan.created_at }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Updated At:</td>
+                            <td class="p-2">{{ testplan.updated_at }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Right Column: Checklist Details -->
+            <div class="bg-white p-4 rounded shadow-md">
+                <h2 class="text-lg font-bold mb-4">Checklist</h2>
+                <table class="table-auto w-full border-collapse">
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Support Assistance:</td>
+                            <td class="p-2">{{ checklist.support_assistance }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Support Workcenter:</td>
+                            <td class="p-2">{{ checklist.support_workcenter }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Safety Risks:</td>
+                            <td class="p-2">{{ checklist.safety_risks }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Safety Overrides:</td>
+                            <td class="p-2">{{ checklist.safety_overrides }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Software Changes:</td>
+                            <td class="p-2">{{ checklist.software_changes }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Software Changes Stay:</td>
+                            <td class="p-2">{{ checklist.software_changes_stay }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Software Devpatch:</td>
+                            <td class="p-2">{{ checklist.software_devpatch }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Software Dolly Devbench:</td>
+                            <td class="p-2">{{ checklist.software_dolly_devbench }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Hardware Recipes:</td>
+                            <td class="p-2">{{ checklist.hardware_recipes }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Hardware Changes:</td>
+                            <td class="p-2">{{ checklist.hardware_changes }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Hardware Changes Stay:</td>
+                            <td class="p-2">{{ checklist.hardware_changes_stay }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Hardware Arrangement:</td>
+                            <td class="p-2">{{ checklist.hardware_arrangement }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Config HW Requirements:</td>
+                            <td class="p-2">{{ checklist.config_hw_requirements }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Config SW Requirements:</td>
+                            <td class="p-2">{{ checklist.config_sw_requirements }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Tools Dev Reticles:</td>
+                            <td class="p-2">{{ checklist.tools_dev_reticles }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Tools Customer Reticles:</td>
+                            <td class="p-2">{{ checklist.tools_customer_reticles }}</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="font-bold p-2">Don't Forget Recovery Time:</td>
+                            <td class="p-2">{{ checklist.dont_forget_recovery_time }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+{% endblock %}

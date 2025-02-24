@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Create Test Plan - Part 2{% endblock %}
+
+{% block content %}
+<h1>Create Test Plan - Part 2</h1>
+<form method="post" action="#">
+    {% csrf_token %}
+    <div class="table-section">
+        <table id="testplan-table">
+            <thead>
+                <tr>
+                    <th>Preparation Step</th>
+                    <th>Procedure</th>
+                    <th>Daytime Duration</th>
+                    <th>NQ Duration</th>
+                    <th>Executor</th>
+                    <th>Comments</th>
+                    <th>Decision Point</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" name="preparation_step"></td>
+                    <td><input type="text" name="procedure"></td>
+                    <td><input type="text" name="daytime_duration"></td>
+                    <td><input type="text" name="nq_duration"></td>
+                    <td><input type="text" name="executor"></td>
+                    <td><input type="text" name="comments"></td>
+                    <td><input type="text" name="decision_point"></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" onclick="addRow()">Add Row</button>
+    </div>
+    <button type="submit">Save Test Plan</button>
+</form>
+<script>
+    function addRow() {
+        var table = document.getElementById("testplan-table").getElementsByTagName('tbody')[0];
+        var newRow = table.insertRow();
+        for (var i = 0; i < 7; i++) {
+            var newCell = newRow.insertCell(i);
+            var input = document.createElement("input");
+            input.type = "text";
+            newCell.appendChild(input);
+        }
+    }
+</script>
+{% endblock %}

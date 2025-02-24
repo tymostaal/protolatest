@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Testplan UID: 678423{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-6 flex">
+    {% if testplan_exists %}
+    <!-- Review status div -->
+    <div class="w-1/3 p-2 bg-white-100">
+        <h2 class="text-md font-bold mb-2">Review Status</h2>
+        <table class="table-auto w-full border-collapse">
+            <tbody>
+                <tr class="border-b">
+                    <td class="p-1 text-sm">PE:</td>
+                    <td class="p-1 text-sm">{{ testplan_status.pe_status }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="p-1 text-sm">PCE HW:</td>
+                    <td class="p-1 text-sm">{{ testplan_status.pce_hw_status }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="p-1 text-sm">PCE SW:</td>
+                    <td class="p-1 text-sm">{{ testplan_status.pce_sw_status }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="p-1 text-sm">PO:</td>
+                    <td class="p-1 text-sm">{{ testplan_status.po_status }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="p-1 text-sm">PE:</td>
+                    <td class="p-1 text-sm">{{ testplan_status.pe_status }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- Reservation status div -->
+    <div class="w-2/3 p-4">
+    {% else %}
+    <!-- Reservation status div full width -->
+    <div class="w-full p-4">
+    {% endif %}
+        <h2 class="text-md font-bold mb-12">Reservation Status</h2>
+        <!-- Remove the current status paragraph -->
+        <!-- <p class="mb-4">Current Status: {{ reservation.get_status_display }}</p> -->
+
+        <!-- Add the progress bar visualization -->
+        <div class="progress">
+            <div class="progress-track"></div>
+            <div id="step1" class="progress-step">New</div>
+            <div id="step2" class="progress-step">In Review</div>
+            <div id="step3" class="progress-step">Cancelled</div>
+            <div id="step4" class="progress-step">Transfer to Proto</div>
+            <div id="step5" class="progress-step">Scheduled</div>
+            <div id="step6" class="progress-step">Performed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional content -->
+
+<style>
+    :root {
+        --grey: #777;
+        --grey2: #dfe3e4;
+        --blue: #2183dd;
+        --green: #009900;
+        --white: #fff;
+    }
+
+    .progress {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 600px;
+        margin: 20px auto;
+    }
+
+    .progress-track {
+        position: absolute;
+        top: 5px;
+        width: 100%;
+        height: 5px;
+        background-color: var(--grey2);
+        z-index: -1;
+    }
+
+    .progress-step {
+        position: relative;
+        width: 100%;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .progress-step:last-child:after {
+        display: none;
+    }
+
+    .progress-step:before {
+        content: "";
+        display: flex;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        width: 15px;
+        height: 15px;
+        background: var(--white);
+        border: 4px solid var(--grey2);
+        border-radius: 100%;
+        color: var(--white);
+    }
+
+    .progress-step:after {
+        content: "";
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        width: 0%;
+        transition: width 1s ease-in;
+        height: 5px;
+        background: var(--grey2);
+        z-index: -1;
+    }
+
+    .progress-step.is-active {
+        color: var(--blue);
+    }
+
+    .progress-step.is-active:before {
+        border: 4px solid var(--grey);
+        animation: pulse 2s infinite;
+    }
+
+    .progress-step.is-complete {
+        color: var(--green);
+    }
+
+    .progress-step.is-complete:before {
+        background: var(--green);
+        border: 4px solid transparent;
+    }
+
+    .progress-step.is-complete:after {
+        background: var(--blue);
+        animation: nextStep 1s;
+        animation-fill-mode: forwards;
+    }
+
+    .bg-white {
+        z-index: 0;
+        position: relative; /* Ensure it respects the stacking context */
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(33,131,221, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(33,131,221, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(33,131,221, 0); }
+    }
+
+    @keyframes nextStep {
+        0% { width: 0%; }
+        100% { width: 100%; }
+    }
+</style>
+
+<script>
+    currentStatus = "{{ reservation.get_status_display }}";  // Pass the current status from the view
+
+    const steps = {
+        'New': 'step1',
+        'In Review': 'step2',
+        'Cancelled': 'step3',
+        'Transfer to Proto': 'step4',
+        'Scheduled': 'step5',
+        'Performed': 'step6'
+    };
+
+    const stepElements = {
+        'step1': document.getElementById('step1'),
+        'step2': document.getElementById('step2'),
+        'step3': document.getElementById('step3'),
+        'step4': document.getElementById('step4'),
+        'step5': document.getElementById('step5'),
+        'step6': document.getElementById('step6')
+    };
+
+    function updateProgressBar(status) {
+        let step = steps[status];
+        let foundActive = false;
+
+        for (let key in stepElements) {
+            if (key === step) {
+                stepElements[key].classList.add("is-active");
+                foundActive = true;
+            } else if (foundActive) {
+                stepElements[key].classList.remove("is-active");
+                stepElements[key].classList.remove("is-complete");
+            } else {
+                stepElements[key].classList.add("is-complete");
+                stepElements[key].classList.remove("is-active");
+            }
+        }
+    }
+
+    updateProgressBar(currentStatus);
+</script>
+
+
+
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-4">
+    <section class="mb-4">
+        <h2 class="text-md font-bold mb-4">Hello {{ request.user.username }},</h2>
+        <p class="text-sm mb-1">Your machine time reservation request has been processed.</p>
+        <p class="text-sm mb-1">Do not forget to read our WOW for Development Engineers to optimize testing time on the machine.</p>
+        <p class="text-sm mb-1">Before coming to the cabine and start testing on the machine, read our WOW proto 10 golden rules.</p>
+        <p class="text-sm mb-3">If you are not the tester, please send him the link to the WOW!!!</p>
+        <p class="text-sm mb-1 font-bold">To make your reservation available for review, please create a test plan.</p>
+        <div class="flex space-x-2 mt-8">
+            <button class="bg-blue-800 hover:bg-green-500 text-white font-bold py-2 px-4 rounded" onclick="location.href='{% url 'create_testplan' reservation.id %}'">
+                Create Test Plan
+            </button>
+            <button class="bg-white text-blue-800 font-bold py-2 px-4 rounded border-2 border-blue-800 hover:bg-green-500 hover:text-white hover:border-transparent" onclick="location.href='{% url 'dashboard' %}'">
+                Back to Dashboard
+            </button>
+        </div>
+    </section>
+
+</div>
+
+
+
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-6 grid grid-cols-2 gap-4">
+    <!-- Left Column: Reservation Details (Part 1) -->
+    <div class="bg-white">
+        <h2 class="text-lg font-bold mb-4">Reservation Detail</h2>
+        <table class="table-auto w-full border-collapse">
+            <tbody>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">UID:</td>
+                    <td class="p-1 text-sm">{{ reservation.uid }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Requester:</td>
+                    <td class="p-1 text-sm">{{ reservation.proto_engineer.username }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Email:</td>
+                    <td class="p-1 text-sm">{{ reservation.email }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Abbreviation:</td>
+                    <td class="p-1 text-sm">{{ reservation.abbreviation }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Selected Platform:</td>
+                    <td class="p-1 text-sm">{{ reservation.selected_platform }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Test Name:</td>
+                    <td class="p-1 text-sm">{{ reservation.test_name }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Test Description:</td>
+                    <td class="p-1 text-sm">{{ reservation.test_description }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Category:</td>
+                    <td class="p-1 text-sm">{{ reservation.category.name }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">PBS Number:</td>
+                    <td class="p-1 text-sm">{{ reservation.pbs_nr }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Project WBS:</td>
+                    <td class="p-1 text-sm">{{ reservation.project_wbs.name }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Specific System Request:</td>
+                    <td class="p-1 text-sm">{{ reservation.specific_system_request.name }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Desired Setup State:</td>
+                    <td class="p-1 text-sm">{{ reservation.desired_setup_state }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Required Machine Config:</td>
+                    <td class="p-1 text-sm">{{ reservation.required_machine_config }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Link to TPS:</td>
+                    <td class="p-1 text-sm"><a href="{{ reservation.link_to_tps }}" class="text-blue-500 underline">{{ reservation.link_to_tps }}</a></td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Execution Responsible:</td>
+                    <td class="p-1 text-sm">{{ reservation.execution_responsible }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Initial Risk Assessment:</td>
+                    <td class="p-1 text-sm">{{ reservation.initial_risk_assessment.name }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Right Column: Reservation Details (Part 2) -->
+    <div class="bg-white">
+        <table class="table-auto w-full border-collapse">
+            <tbody>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Desired Test Date:</td>
+                    <td class="p-1 text-sm">{{ reservation.desired_test_date }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Ultimate Required Date:</td>
+                    <td class="p-1 text-sm">{{ reservation.ultimate_required_date }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Test Duration (Excl. NQ):</td>
+                    <td class="p-1 text-sm">{{ reservation.test_duration_excl_nq }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">NQ Duration:</td>
+                    <td class="p-1 text-sm">{{ reservation.nq_duration }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">HW Changes:</td>
+                    <td class="p-1 text-sm">{{ reservation.hw_changes }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">SW Changes:</td>
+                    <td class="p-1 text-sm">{{ reservation.sw_changes }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Performance Changes:</td>
+                    <td class="p-1 text-sm">{{ reservation.performance_changes }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Keep Config Changes:</td>
+                    <td class="p-1 text-sm">{{ reservation.keep_config_changes }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Proto Engineer Assistance Needed:</td>
+                    <td class="p-1 text-sm">{{ reservation.proto_engineer_assistance_needed }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Customer Reticle Needed:</td>
+                    <td class="p-1 text-sm">{{ reservation.customer_reticle_needed }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Customer Wafers Needed:</td>
+                    <td class="p-1 text-sm">{{ reservation.customer_wafers_needed }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Permit to Work Required:</td>
+                    <td class="p-1 text-sm">{{ reservation.permit_to_work_required }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Remarks:</td>
+                    <td class="p-1 text-sm">{{ reservation.remarks }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Created At:</td>
+                    <td class="p-1 text-sm">{{ reservation.created_at }}</td>
+                </tr>
+                <tr class="border-b">
+                    <td class="font-bold p-1 text-sm">Updated At:</td>
+                    <td class="p-1 text-sm">{{ reservation.updated_at }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

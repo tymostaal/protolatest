@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="container mx-auto p-4">
+        <!-- Full-width Greeting and Introductory Text -->
+        <div class="bg-white p-4 rounded shadow-md mb-4">
+            <h2 class="text-xl font-bold mb-4">Edit Testplan: {{ testplan.name }}</h2>
+            <p class="mb-2">Make changes to the testplan details below.</p>
+
+            <!-- Form -->
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="flex space-x-2 mt-4">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-[#0F238C]">Save Changes</button>
+                    <a href="{% url 'testplan_detail' testplan.id %}" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-[#0F238C]">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Create Testplan
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="grid grid-cols-3 gap-4">
+        <!-- Form Section -->
+        <div class="col-span-2 bg-white p-4 rounded shadow-md">
+            <h2 class="text-lg font-bold mb-2">Create Testplan for {{ reservation }}</h2>
+            <form method="post" class="space-y-1" id="testplanForm">
+                {% csrf_token %}
+                {{ wizard.management_form }}
+                <div class="grid grid-cols-1 gap-2">
+                    {% for field in wizard.form %}
+                    <div class="flex items-center text-xs">
+                        <label for="{{ field.id_for_label }}" class="w-1/4 font-bold">{{ field.label }}:</label>
+                        <div class="w-3/4">
+                            {{ field }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="flex justify-between mt-2">
+                    <button type="submit" class="bg-blue-500 text-white px-2 py-1 rounded">
+                        {% if wizard.steps.current == wizard.steps.last %}
+                            Save
+                        {% else %}
+                            Next
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'reservation_detail' uid=reservation.uid %}" class="bg-gray-500 text-white px-2 py-1 rounded">Back to Reservation</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Context Section -->
+        <div class="bg-gray-100 p-4 rounded shadow-md">
+            <h2 class="text-lg font-bold mb-2">Context Information</h2>
+            <p class="text-xs">Here you can add any additional context or information that might be helpful for the user while filling out the form. This could include instructions, guidelines, or any other relevant details.</p>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .container {
+        padding: 0.5rem;
+    }
+    .grid {
+        gap: 0.25rem; /* Reduce the gap between grid items */
+    }
+    .flex {
+        margin-bottom: 0.25rem; /* Reduce the margin between flex items */
+    }
+    .border {
+        padding: 0.2rem;
+    }
+</style>
+
+{% endblock %}

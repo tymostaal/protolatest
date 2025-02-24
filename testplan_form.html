@@ -1,0 +1,715 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create TestPlan with Library</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Include SortableJS for drag-and-drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <style>
+    /* Draggable row styling with light hover effect */
+    tr.draggable {
+      transition: background-color 0.2s ease;
+    }
+    tr.draggable:hover {
+      cursor: grab;
+      background-color: #f3f4f6; /* very light gray */
+    }
+    tr.draggable:active {
+      cursor: grabbing;
+    }
+    /* Right sidebar container transitions */
+    #library-container {
+      transition: width 0.3s ease;
+    }
+    #library-container.closed {
+      width: 0 !important;
+      padding: 0;
+      border: none;
+    }
+    /* Ensure inner sidebar takes full width */
+    #library-sidebar {
+      width: 100%;
+      transition: opacity 0.3s ease;
+    }
+    #library-container.closed #library-sidebar {
+      opacity: 0;
+    }
+    /* Toggle button stays visible */
+    #library-toggle {
+      left: -2rem;
+    }
+    /* Modal overlay styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body class="bg-gray-100 text-xs overflow-x-hidden">
+  <!-- Header -->
+  {% include "components/header.html" %}
+  
+  <!-- Main flex container -->
+  <div class="flex min-h-screen">
+    <!-- Left Sidebar -->
+    <div class="w-1/6 bg-white border-r p-2">
+      {% include "components/sidebar.html" %}
+    </div>
+    
+    <!-- Main Content -->
+    <div id="main-content" class="flex-1 p-2">
+      
+      <h1 class="text-lg font-bold mb-2">Create TestPlan</h1>
+      <form method="post" id="testplan-form">
+        {% csrf_token %}
+        
+        <!-- PREPARATION STEPS SECTION -->
+        <div class="mb-2 bg-white shadow rounded p-2">
+          <h2 class="text-base font-semibold mb-1">Preparation Steps</h2>
+          <table class="min-w-full table-auto border-collapse" id="prep-table">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="px-2 py-1">Drag</th>
+                <th class="px-2 py-1">Step</th>
+                <th class="px-2 py-1">Procedure</th>
+                <th class="px-2 py-1">Duration</th>
+                <th class="px-2 py-1">Executor</th>
+                <th class="px-2 py-1">Comments</th>
+                <th class="px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="prep-tbody" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'prep')">
+              {% for form in prep_formset %}
+                <tr class="draggable draggable-row border-t">
+                  <td class="px-2 py-1 text-center">
+                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm4-8a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+                    </svg>
+                  </td>
+                  <td class="px-2 py-1">{{ form.step }}</td>
+                  <td class="px-2 py-1">{{ form.procedure }}</td>
+                  <td class="px-2 py-1">{{ form.day_time_duration }}</td>
+                  <td class="px-2 py-1">{{ form.executor }}</td>
+                  <td class="px-2 py-1">{{ form.comments }}</td>
+                  <td class="px-2 py-1">
+                    <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+                    <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+                    {{ form.DELETE.as_hidden|safe }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="mt-1">
+            <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded" onclick="addRow('prep')">Add Step</button>
+          </div>
+          {{ prep_formset.management_form }}
+        </div>
+        
+        <!-- EXECUTION STEPS SECTION -->
+        <div class="mb-2 bg-white shadow rounded p-2">
+          <h2 class="text-base font-semibold mb-1">Execution Steps</h2>
+          <table class="min-w-full table-auto border-collapse" id="exec-table">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="px-2 py-1">Drag</th>
+                <th class="px-2 py-1">Step</th>
+                <th class="px-2 py-1">Procedure</th>
+                <th class="px-2 py-1">Duration</th>
+                <th class="px-2 py-1">Executor</th>
+                <th class="px-2 py-1">Comments</th>
+                <th class="px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="exec-tbody" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'exec')">
+              {% for form in exec_formset %}
+                <tr class="draggable draggable-row border-t">
+                  <td class="px-2 py-1 text-center">
+                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm4-8a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+                    </svg>
+                  </td>
+                  <td class="px-2 py-1">{{ form.step }}</td>
+                  <td class="px-2 py-1">{{ form.procedure }}</td>
+                  <td class="px-2 py-1">{{ form.day_time_duration }}</td>
+                  <td class="px-2 py-1">{{ form.executor }}</td>
+                  <td class="px-2 py-1">{{ form.comments }}</td>
+                  <td class="px-2 py-1">
+                    <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+                    <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+                    {{ form.DELETE.as_hidden|safe }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="mt-1">
+            <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded" onclick="addRow('exec')">Add Step</button>
+          </div>
+          {{ exec_formset.management_form }}
+        </div>
+        
+        <!-- WRAP-UP STEPS SECTION -->
+        <div class="mb-2 bg-white shadow rounded p-2">
+          <h2 class="text-base font-semibold mb-1">Wrap-Up Steps</h2>
+          <table class="min-w-full table-auto border-collapse" id="wrap-table">
+            <thead>
+              <tr class="bg-gray-200">
+                <th class="px-2 py-1">Drag</th>
+                <th class="px-2 py-1">Step</th>
+                <th class="px-2 py-1">Procedure</th>
+                <th class="px-2 py-1">Duration</th>
+                <th class="px-2 py-1">Executor</th>
+                <th class="px-2 py-1">Comments</th>
+                <th class="px-2 py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="wrap-tbody" ondragover="allowDrop(event)" ondrop="handleDrop(event, 'wrap')">
+              {% for form in wrap_formset %}
+                <tr class="draggable draggable-row border-t">
+                  <td class="px-2 py-1 text-center">
+                    <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm4-8a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+                    </svg>
+                  </td>
+                  <td class="px-2 py-1">{{ form.step }}</td>
+                  <td class="px-2 py-1">{{ form.procedure }}</td>
+                  <td class="px-2 py-1">{{ form.day_time_duration }}</td>
+                  <td class="px-2 py-1">{{ form.executor }}</td>
+                  <td class="px-2 py-1">{{ form.comments }}</td>
+                  <td class="px-2 py-1">
+                    <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+                    <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+                    {{ form.DELETE.as_hidden|safe }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="mt-1">
+            <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded" onclick="addRow('wrap')">Add Step</button>
+          </div>
+          {{ wrap_formset.management_form }}
+        </div>
+        <!-- Main form buttons -->
+        <div class="mt-4">
+          <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded">Save TestPlan</button>
+          <button type="button" onclick="openSaveTemplateModal()" class="bg-blue-500 text-white px-3 py-1 rounded ml-2">Save as Template</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Right Library Sidebar Container -->
+    <div id="library-container" class="w-1/5 relative transition-all duration-300">
+      <div id="library-sidebar" class="bg-white border-l p-2 h-full transition-all duration-300">
+        <div id="library-content" class="ml-2">
+          <!-- Accordion for Templates (grouped by folder) -->
+          <div class="mb-2">
+            <div class="folder-header cursor-pointer bg-gray-300 p-1 rounded" onclick="toggleFolder(this)">
+              <span class="font-bold text-xs">Templates</span>
+            </div>
+            <div class="folder-content pl-2 mt-1">
+              <div id="templates-list" class="space-y-1 overflow-y-auto max-h-48">
+                <p class="text-gray-500 text-xs">Loading templates...</p>
+              </div>
+            </div>
+          </div>
+          <!-- Accordion for Predefined Steps (grouped by folder) -->
+          <div class="mb-2">
+            <div class="folder-header cursor-pointer bg-gray-300 p-1 rounded" onclick="toggleFolder(this)">
+              <span class="font-bold text-xs">Predefined Steps</span>
+            </div>
+            <div class="folder-content pl-2 mt-1 hidden">
+              <div id="predefined-steps-list" class="space-y-1 overflow-y-auto max-h-48">
+                <p class="text-gray-500 text-xs">Loading predefined steps...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Toggle Handle (always visible) -->
+      <div id="library-toggle" class="absolute -left-8 top-1/2 transform -translate-y-1/2 bg-gray-300 rounded-full p-2 cursor-pointer"
+           onclick="toggleLibrarySidebar()">
+        <svg id="toggle-arrow" class="w-6 h-6 text-gray-700 transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M12.293 16.293a1 1 0 010-1.414L15.586 11H4a1 1 0 110-2h11.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z"/>
+        </svg>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- Hidden Template Rows for each section -->
+  <table style="display: none;">
+    <tbody>
+      <!-- Template for Preparation -->
+      <tr id="prep-template" class="draggable draggable-row border-t">
+        <td class="px-2 py-2 text-center cursor-grab">
+          <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+          </svg>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="prep-__prefix__-step" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="prep-__prefix__-procedure" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="prep-__prefix__-day_time_duration" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="prep-__prefix__-executor" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="prep-__prefix__-comments" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+          <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+          <input type="hidden" name="prep-__prefix__-DELETE" id="id_prep-__prefix__-DELETE" style="display:none;">
+        </td>
+        <input type="hidden" name="prep-__prefix__-section" value="preparation">
+        <input type="hidden" name="prep-__prefix__-step_order" value="0">
+      </tr>
+      <!-- Template for Execution -->
+      <tr id="exec-template" class="draggable draggable-row border-t">
+        <td class="px-2 py-2 text-center cursor-grab">
+          <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+          </svg>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="exec-__prefix__-step" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="exec-__prefix__-procedure" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="exec-__prefix__-day_time_duration" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="exec-__prefix__-executor" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="exec-__prefix__-comments" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+          <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+          <input type="hidden" name="exec-__prefix__-DELETE" id="id_exec-__prefix__-DELETE" style="display:none;">
+        </td>
+        <input type="hidden" name="exec-__prefix__-section" value="execution">
+        <input type="hidden" name="exec-__prefix__-step_order" value="0">
+      </tr>
+      <!-- Template for Wrap-Up -->
+      <tr id="wrap-template" class="draggable draggable-row border-t">
+        <td class="px-2 py-2 text-center cursor-grab">
+          <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3 7a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0zm0 4a1 1 0 112 0 1 1 0 01-2 0z"/>
+          </svg>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="wrap-__prefix__-step" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="wrap-__prefix__-procedure" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="wrap-__prefix__-day_time_duration" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <input type="text" name="wrap-__prefix__-executor" class="w-full border border-gray-300 rounded px-1 py-1" value="">
+        </td>
+        <td class="px-2 py-2">
+          <textarea name="wrap-__prefix__-comments" class="w-full border border-gray-300 rounded px-1 py-1 resize-y" rows="1"></textarea>
+        </td>
+        <td class="px-2 py-2">
+          <button type="button" class="bg-red-500 text-white px-1 py-1 rounded" onclick="deleteRow(this)">Delete</button>
+          <button type="button" class="bg-blue-500 text-white px-1 py-1 rounded ml-1" onclick="openSaveStepModal(this)">Save</button>
+          <input type="hidden" name="wrap-__prefix__-DELETE" id="id_wrap-__prefix__-DELETE" style="display:none;">
+        </td>
+        <input type="hidden" name="wrap-__prefix__-section" value="wrapup">
+        <input type="hidden" name="wrap-__prefix__-step_order" value="0">
+      </tr>
+    </tbody>
+  </table>
+  
+  <!-- JavaScript for row handling, drag & drop, modals, AJAX calls, and sidebar toggling -->
+  <script>
+    // Function to add a new row for a given prefix ('prep', 'exec', or 'wrap')
+    function addRow(prefix) {
+      const tbody = document.getElementById(prefix + '-tbody');
+      const totalFormsInput = document.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`);
+      let formIndex = parseInt(totalFormsInput.value);
+      const templateRow = document.getElementById(prefix + '-template');
+      let newRow = templateRow.cloneNode(true);
+      newRow.removeAttribute('id');
+      newRow.style.display = '';
+      newRow.innerHTML = newRow.innerHTML.replace(new RegExp(prefix + '-__prefix__-', 'g'), prefix + '-' + formIndex + '-');
+      tbody.appendChild(newRow);
+      totalFormsInput.value = formIndex + 1;
+    }
+    
+    // Function to delete a row (or mark it as deleted)
+    function deleteRow(button) {
+      const row = button.closest('tr');
+      const deleteInput = row.querySelector('input[name$="-DELETE"]');
+      if (deleteInput) {
+        deleteInput.value = 'on';
+        row.style.display = 'none';
+      } else {
+        row.remove();
+      }
+    }
+    
+    // Function to update hidden step_order input for rows in a tbody
+    function updateRowOrder(tbodyId, prefix) {
+      const tbody = document.getElementById(tbodyId);
+      Array.from(tbody.children).forEach((row, index) => {
+        const orderInput = row.querySelector(`input[name^="${prefix}-"][name$="-step_order"]`);
+        if (orderInput) {
+          orderInput.value = index;
+        }
+      });
+    }
+    
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+    
+    // Handle drop event for external predefined steps
+    function handleDrop(ev, prefix) {
+      ev.preventDefault();
+      let data = ev.dataTransfer.getData("text/plain");
+      if (data) {
+        let stepData = JSON.parse(data);
+        addRow(prefix);
+        let tbody = document.getElementById(prefix + '-tbody');
+        let newRow = tbody.lastElementChild;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-step"]`).value = stepData.name;
+        newRow.querySelector(`textarea[name^="${prefix}-"][name$="-procedure"]`).value = stepData.procedure;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-day_time_duration"]`).value = stepData.day_time_duration;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-nq_duration"]`).value = stepData.nq_duration;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-executor"]`).value = stepData.executor;
+        newRow.querySelector(`textarea[name^="${prefix}-"][name$="-comments"]`).value = stepData.comments;
+      }
+    }
+    
+    // Shared group for SortableJS (drag-and-drop)
+    const sharedGroup = { name: 'shared', pull: true, put: true };
+    new Sortable(document.getElementById('prep-tbody'), {
+      group: sharedGroup,
+      animation: 150,
+      onAdd: function (evt) { updateSectionField(evt.item, evt.to.id); },
+      onEnd: function () { updateRowOrder('prep-tbody', 'prep'); }
+    });
+    new Sortable(document.getElementById('exec-tbody'), {
+      group: sharedGroup,
+      animation: 150,
+      onAdd: function (evt) { updateSectionField(evt.item, evt.to.id); },
+      onEnd: function () { updateRowOrder('exec-tbody', 'exec'); }
+    });
+    new Sortable(document.getElementById('wrap-tbody'), {
+      group: sharedGroup,
+      animation: 150,
+      onAdd: function (evt) { updateSectionField(evt.item, evt.to.id); },
+      onEnd: function () { updateRowOrder('wrap-tbody', 'wrap'); }
+    });
+    
+    // Update hidden "section" field based on tbody id when moved across sections
+    function updateSectionField(row, newTbodyId) {
+      const sectionInput = row.querySelector('input[name*="-section"]');
+      if (sectionInput) {
+        if (newTbodyId === 'prep-tbody') {
+          sectionInput.value = 'preparation';
+        } else if (newTbodyId === 'exec-tbody') {
+          sectionInput.value = 'execution';
+        } else if (newTbodyId === 'wrap-tbody') {
+          sectionInput.value = 'wrapup';
+        }
+      }
+    }
+    
+    // Toggle sidebar visibility by toggling the "closed" class
+    function toggleLibrarySidebar() {
+      const libraryContainer = document.getElementById('library-container');
+      const arrow = document.getElementById('toggle-arrow');
+      libraryContainer.classList.toggle('closed');
+      arrow.classList.toggle('rotate-180');
+    }
+    
+    // Toggle folder content in the sidebar
+    function toggleFolder(header) {
+      const content = header.nextElementSibling;
+      content.classList.toggle('hidden');
+    }
+    
+    // ----- Modal Functions for Saving a Step -----
+    function openSaveStepModal(button) {
+      console.log("openSaveStepModal triggered");
+      document.getElementById('saveStepModal').classList.remove('hidden');
+      window.currentRow = button.closest('tr');
+    }
+    function closeSaveStepModal() {
+      console.log("closeSaveStepModal triggered");
+      document.getElementById('saveStepModal').classList.add('hidden');
+    }
+    function saveStep() {
+      console.log("saveStep triggered");
+      const title = document.getElementById('saveStepTitle').value;
+      const description = document.getElementById('saveStepDescription').value;
+      const folder = document.getElementById('saveStepFolder').value;
+      console.log("Step modal values:", title, description, folder);
+      const row = window.currentRow;
+      let prefix = row.querySelector('input[name^="prep-"]') ? "prep" :
+                   row.querySelector('input[name^="exec-"]') ? "exec" : "wrap";
+      const data = {
+        name: title,
+        description: description,
+        folder: folder,
+        section: prefix === "prep" ? "preparation" : prefix === "exec" ? "execution" : "wrapup",
+        procedure: row.querySelector('textarea[name*="-procedure"]').value,
+        day_time_duration: row.querySelector('input[name*="-day_time_duration"]').value,
+        nq_duration: row.querySelector('input[name*="-nq_duration"]') ? row.querySelector('input[name*="-nq_duration"]').value : "",
+        executor: row.querySelector('input[name*="-executor"]').value,
+        comments: row.querySelector('textarea[name*="-comments"]').value,
+      };
+      console.log("Sending predefined step data:", data);
+      fetch("{% url 'save_predefined_step' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        console.log("Response received from saveStep fetch:", response);
+        return response.json();
+      })
+      .then(result => {
+        console.log("Result from saveStep fetch:", result);
+        if(result.status === "success"){
+          alert("Step saved successfully!");
+          loadPredefinedSteps();
+        } else {
+          alert("Error saving step: " + result.message);
+        }
+        closeSaveStepModal();
+      })
+      .catch(error => {
+        console.error("Error during saveStep fetch:", error);
+        closeSaveStepModal();
+      });
+    }
+    
+    // ----- Modal Functions for Saving a Template -----
+    function openSaveTemplateModal() {
+      console.log("openSaveTemplateModal triggered");
+      document.getElementById('saveTemplateModal').classList.remove('hidden');
+    }
+    function closeSaveTemplateModal() {
+      console.log("closeSaveTemplateModal triggered");
+      document.getElementById('saveTemplateModal').classList.add('hidden');
+    }
+    function saveTemplate() {
+      console.log("saveTemplate triggered");
+      const name = document.getElementById('saveTemplateTitle').value;
+      const description = document.getElementById('saveTemplateDescription').value;
+      const folder = document.getElementById('saveTemplateFolder').value;
+      console.log("Template modal values:", name, description, folder);
+      const steps = [];
+      ["prep", "exec", "wrap"].forEach(prefix => {
+        const tbody = document.getElementById(prefix + "-tbody");
+        Array.from(tbody.children).forEach((row, index) => {
+          const stepData = {
+            step_order: index,
+            section: prefix === "prep" ? "preparation" : prefix === "exec" ? "execution" : "wrapup",
+            step: row.querySelector(`input[name^="${prefix}-"][name$="-step"]`).value,
+            procedure: row.querySelector(`textarea[name^="${prefix}-"][name$="-procedure"]`).value,
+            day_time_duration: row.querySelector(`input[name^="${prefix}-"][name$="-day_time_duration"]`).value,
+            nq_duration: row.querySelector(`input[name^="${prefix}-"][name$="-nq_duration"]`) ? row.querySelector(`input[name^="${prefix}-"][name$="-nq_duration"]`).value : "",
+            executor: row.querySelector(`input[name^="${prefix}-"][name$="-executor"]`).value,
+            comments: row.querySelector(`textarea[name^="${prefix}-"][name$="-comments"]`).value,
+          };
+          steps.push(stepData);
+        });
+      });
+      const data = {
+        name: name,
+        description: description,
+        folder: folder,
+        steps: steps
+      };
+      console.log("Sending template data:", data);
+      fetch("{% url 'save_template' %}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        console.log("Response received from saveTemplate fetch:", response);
+        return response.json();
+      })
+      .then(result => {
+        console.log("Result from saveTemplate fetch:", result);
+        if(result.status === "success"){
+          alert("Template saved successfully!");
+          loadTemplates();
+        } else {
+          alert("Error saving template: " + result.message);
+        }
+        closeSaveTemplateModal();
+      })
+      .catch(error => {
+        console.error("Error during saveTemplate fetch:", error);
+        closeSaveTemplateModal();
+      });
+    }
+    
+    // ----- Functions to Reload Library Sidebar Data -----
+    function loadPredefinedSteps() {
+      console.log("Loading predefined steps...");
+      fetch("{% url 'predefined_steps_list' %}")
+        .then(response => response.json())
+        .then(data => {
+          const stepsList = document.getElementById("predefined-steps-list");
+          stepsList.innerHTML = "";
+          const groups = {};
+          data.forEach(step => {
+            const folder = step.folder || 'Ungrouped';
+            if(!groups[folder]) groups[folder] = [];
+            groups[folder].push(step);
+          });
+          Object.keys(groups).forEach(folder => {
+            const folderHeader = document.createElement("div");
+            folderHeader.className = "font-bold text-xs mt-2";
+            folderHeader.textContent = folder;
+            stepsList.appendChild(folderHeader);
+            groups[folder].forEach(step => {
+              let card = document.createElement("div");
+              card.className = "bg-green-100 p-1 rounded cursor-grab hover:bg-green-200 mt-1";
+              card.draggable = true;
+              card.innerHTML = `<strong>${step.name}</strong><br><small>${step.section}</small>`;
+              card.addEventListener("dragstart", function(ev) {
+                ev.dataTransfer.setData("text/plain", JSON.stringify(step));
+              });
+              stepsList.appendChild(card);
+            });
+          });
+        })
+        .catch(error => {
+          console.error("Error loading predefined steps:", error);
+        });
+    }
+    
+    function loadTemplates() {
+      console.log("Loading templates...");
+      fetch("{% url 'templates_list' %}")
+        .then(response => response.json())
+        .then(data => {
+          const templatesList = document.getElementById("templates-list");
+          templatesList.innerHTML = "";
+          const groups = {};
+          data.forEach(template => {
+            const folder = template.folder || 'Ungrouped';
+            if(!groups[folder]) groups[folder] = [];
+            groups[folder].push(template);
+          });
+          Object.keys(groups).forEach(folder => {
+            const folderHeader = document.createElement("div");
+            folderHeader.className = "font-bold text-xs mt-2";
+            folderHeader.textContent = folder;
+            templatesList.appendChild(folderHeader);
+            groups[folder].forEach(template => {
+              let card = document.createElement("div");
+              card.className = "bg-blue-100 p-1 rounded cursor-pointer hover:bg-blue-200 mt-1";
+              card.innerHTML = `<strong>${template.name}</strong><br><small>${template.description}</small>`;
+              card.onclick = function() {
+                fetch("{% url 'load_template' 0 %}".replace("0", template.id))
+                  .then(resp => resp.json())
+                  .then(templateData => { loadTemplateIntoForm(templateData); });
+              };
+              templatesList.appendChild(card);
+            });
+          });
+        })
+        .catch(error => {
+          console.error("Error loading templates:", error);
+        });
+    }
+    
+    // Load library data on DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", function() {
+      loadTemplates();
+      loadPredefinedSteps();
+    });
+    
+    // Load a template's steps into the form
+    function loadTemplateIntoForm(templateData) {
+      ["prep", "exec", "wrap"].forEach(prefix => {
+        const tbody = document.getElementById(prefix + "-tbody");
+        tbody.innerHTML = "";
+        document.querySelector(`input[name="${prefix}-TOTAL_FORMS"]`).value = 0;
+      });
+      templateData.steps.forEach(step => {
+        let prefix;
+        if (step.section === "preparation") prefix = "prep";
+        else if (step.section === "execution") prefix = "exec";
+        else if (step.section === "wrapup") prefix = "wrap";
+        addRow(prefix);
+        let tbody = document.getElementById(prefix + "-tbody");
+        let newRow = tbody.lastElementChild;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-step"]`).value = step.step;
+        newRow.querySelector(`textarea[name^="${prefix}-"][name$="-procedure"]`).value = step.procedure;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-day_time_duration"]`).value = step.day_time_duration;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-nq_duration"]`).value = step.nq_duration;
+        newRow.querySelector(`input[name^="${prefix}-"][name$="-executor"]`).value = step.executor;
+        newRow.querySelector(`textarea[name^="${prefix}-"][name$="-comments"]`).value = step.comments;
+      });
+    }
+  </script>
+  
+  <!-- Modal for Saving a Step -->
+  <div id="saveStepModal" class="modal-overlay hidden">
+    <div class="bg-white p-4 rounded shadow-lg w-80">
+      <h2 class="text-lg font-bold mb-2">Save Step</h2>
+      <label class="block text-sm font-medium">Title</label>
+      <input id="saveStepTitle" type="text" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" />
+      <label class="block text-sm font-medium">Description</label>
+      <textarea id="saveStepDescription" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" rows="2"></textarea>
+      <label class="block text-sm font-medium">Folder (optional)</label>
+      <input id="saveStepFolder" type="text" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" />
+      <div class="flex justify-end">
+        <button onclick="closeSaveStepModal()" class="bg-gray-500 text-white px-3 py-1 rounded mr-2">Cancel</button>
+        <button onclick="saveStep()" class="bg-blue-500 text-white px-3 py-1 rounded">Save Step</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal for Saving a Template -->
+  <div id="saveTemplateModal" class="modal-overlay hidden">
+    <div class="bg-white p-4 rounded shadow-lg w-80">
+      <h2 class="text-lg font-bold mb-2">Save as Template</h2>
+      <label class="block text-sm font-medium">Name</label>
+      <input id="saveTemplateTitle" type="text" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" />
+      <label class="block text-sm font-medium">Description</label>
+      <textarea id="saveTemplateDescription" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" rows="2"></textarea>
+      <label class="block text-sm font-medium">Folder (optional)</label>
+      <input id="saveTemplateFolder" type="text" class="w-full border border-gray-300 rounded px-2 py-1 mb-2" />
+      <div class="flex justify-end">
+        <button onclick="closeSaveTemplateModal()" class="bg-gray-500 text-white px-3 py-1 rounded mr-2">Cancel</button>
+        <button onclick="saveTemplate()" class="bg-blue-500 text-white px-3 py-1 rounded">Save Template</button>
+      </div>
+    </div>
+  </div>
+  
+</body>
+</html>

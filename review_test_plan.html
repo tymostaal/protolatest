@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <!-- Status Display at the Top -->
+    <div class="bg-white-100 p-4 rounded shadow-md mb-4">
+        <h2 class="text-xl font-bold mb-2">Reservation Status</h2>
+        <div class="progress">
+            <div class="progress-track"></div>
+            <div id="step1" class="progress-step">New</div>
+            <div id="step2" class="progress-step">In Review</div>
+            <div id="step3" class="progress-step">Cancelled</div>
+            <div id="step4" class="progress-step">Transfer to Proto</div>
+            <div id="step5" class="progress-step">Scheduled</div>
+            <div id="step6" class="progress-step">Performed</div>
+        </div>
+    </div>
+
+    <!-- Review Form -->
+    <div class="bg-white p-4 rounded shadow-md mb-4">
+        <h1 class="text-xl font-bold mb-4">Review Test Plan</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-[#0F238C]">Submit Review</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+    :root {
+        --grey: #777;
+        --grey2: #dfe3e4;
+        --blue: #2183dd;
+        --green: #009900;
+        --white: #fff;
+    }
+
+    .progress {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 600px;
+        margin: 20px auto;
+    }
+
+    .progress-track {
+        position: absolute;
+        top: 5px;
+        width: 100%;
+        height: 5px;
+        background-color: var(--grey2);
+        z-index: -1;
+    }
+
+    .progress-step {
+        position: relative;
+        width: 100%;
+        font-size: 15px;
+        text-align: center;
+    }
+
+    .progress-step:last-child:after {
+        display: none;
+    }
+
+    .progress-step:before {
+        content: "";
+        display: flex;
+        margin: 0 auto;
+        margin-bottom: 10px;
+        width: 15px;
+        height: 15px;
+        background: var(--white);
+        border: 4px solid var(--grey2);
+        border-radius: 100%;
+        color: var(--white);
+    }
+
+    .progress-step:after {
+        content: "";
+        position: absolute;
+        top: 6px;
+        left: 50%;
+        width: 0%;
+        transition: width 1s ease-in;
+        height: 5px;
+        background: var(--grey2);
+        z-index: -1;
+    }
+
+    .progress-step.is-active {
+        color: var(--blue);
+    }
+
+    .progress-step.is-active:before {
+        border: 4px solid var(--grey);
+        animation: pulse 2s infinite;
+    }
+
+    .progress-step.is-complete {
+        color: var(--green);
+    }
+
+    .progress-step.is-complete:before {
+        background: var(--green);
+        border: 4px solid transparent;
+    }
+
+    .progress-step.is-complete:after {
+        background: var(--blue);
+        animation: nextStep 1s;
+        animation-fill-mode: forwards;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(33,131,221, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(33,131,221, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(33,131,221, 0); }
+    }
+
+    @keyframes nextStep {
+        0% { width: 0%; }
+        100% { width: 100%; }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentStatus = "{{ reservation.get_status_display }}";  // Pass the current status from the view
+
+        const steps = {
+            'New': 'step1',
+            'In Review': 'step2',
+            'Cancelled': 'step3',
+            'Transfer to Proto': 'step4',
+            'Scheduled': 'step5',
+            'Performed': 'step6'
+        };
+
+        const stepElements = {
+            'step1': document.getElementById('step1'),
+            'step2': document.getElementById('step2'),
+            'step3': document.getElementById('step3'),
+            'step4': document.getElementById('step4'),
+            'step5': document.getElementById('step5'),
+            'step6': document.getElementById('step6')
+        };
+
+        function updateProgressBar(status) {
+            let step = steps[status];
+            let foundActive = false;
+
+            for (let key in stepElements) {
+                if (key === step) {
+                    stepElements[key].classList.add("is-active");
+                    foundActive = true;
+                } else if (foundActive) {
+                    stepElements[key].classList.remove("is-active");
+                    stepElements[key].classList.remove("is-complete");
+                } else {
+                    stepElements[key].classList.add("is-complete");
+                    stepElements[key].classList.remove("is-active");
+                }
+            }
+        }
+
+        updateProgressBar(currentStatus);
+    });
+</script>

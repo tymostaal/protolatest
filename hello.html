@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Testplan UID: 678423{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-4">
+  <!-- Page Header -->
+  <header class="mb-4">
+    <h1 class="text-xl font-bold text-gray-900">Testplan UID: 678423</h1>
+    <p class="text-xs text-gray-600">Created on: February 20, 2025</p>
+  </header>
+
+  <!-- Section 1: Overview -->
+  <section class="mb-4">
+    <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+    <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+  </section>
+
+  <!-- Section 2: Details -->
+  <section class="mb-4">
+    <h2 class="text-lg font-semibold text-gray-800">Details</h2>
+    <ul class="list-disc list-inside text-xs text-gray-700">
+      <li>Objective: Ensure all functionalities are working as expected.</li>
+      <li>Scope: Covers all major features and components.</li>
+      <li>Duration: Estimated to take 2 weeks.</li>
+    </ul>
+  </section>
+
+  <!-- Section 3: Test Cases -->
+  <section class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-800">Test Cases</h2>
+    <table class="min-w-full bg-white">
+      <thead>
+        <tr>
+          <th class="py-2 px-4 border-b text-left text-xs font-semibold text-gray-800">Test Case ID</th>
+          <th class="py-2 px-4 border-b text-left text-xs font-semibold text-gray-800">Description</th>
+          <th class="py-2 px-4 border-b text-left text-xs font-semibold text-gray-800">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">TC-001</td>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">Verify login functionality</td>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">Pending</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">TC-002</td>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">Check user registration</td>
+          <td class="py-2 px-4 border-b text-xs text-gray-700">In Progress</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Section 4: Notes -->
+  <section class="mb-6">
+    <h2 class="text-lg font-semibold text-gray-800">Notes</h2>
+    <p class="text-xs text-gray-700">Additional notes and comments related to the test plan.</p>
+  </section>
+
+
+    <table class="min-w-full bg-white border border-gray-200 mb-4">
+        <thead>
+            <tr>
+                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-gray-800">UID</th>
+                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-gray-800">Test Name</th>
+                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-gray-800">System</th>
+                <th class="px-4 py-2 border-b text-left text-xs font-semibold text-gray-800">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="cursor-pointer hover:bg-gray-100" onclick="window.location.href='/reservation_detail/1'">
+                <td class="px-4 py-2 border-b text-xs text-gray-700">12345</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">Test A</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">System X</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">Completed</td>
+            </tr>
+            <tr class="cursor-pointer hover:bg-gray-100" onclick="window.location.href='/reservation_detail/2'">
+                <td class="px-4 py-2 border-b text-xs text-gray-700">67890</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">Test B</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">System Y</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">Pending</td>
+            </tr>
+            <tr class="cursor-pointer hover:bg-gray-100" onclick="window.location.href='/reservation_detail/3'">
+                <td class="px-4 py-2 border-b text-xs text-gray-700">11223</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">Test C</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">N/A</td>
+                <td class="px-4 py-2 border-b text-xs text-gray-700">In Progress</td>
+            </tr>
+        </tbody>
+    </table>
+    <section class="mb-6">
+        <!-- Primary Button -->
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
+            Primary Button
+        </button>
+    
+        <!-- Secondary Button -->
+        <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+            Secondary Button
+        </button>
+    
+        <!-- Success Button -->
+        <button class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
+            Success Button
+        </button>
+    
+        <!-- Danger Button -->
+        <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm">
+            Danger Button
+        </button>
+    </section>
+</div>
+
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-4 flex flex-wrap">
+    <div class="w-full md:w-1/2 p-4">
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+            <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+        </section>
+    </div>
+    <div class="w-full md:w-1/2 p-4">
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+            <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+        </section>
+    </div>
+</div>
+
+<div class="container mx-auto p-4 bg-white shadow-md rounded-lg mb-4 flex flex-wrap">
+    <div class="w-full md:w-1/3 p-4">
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+            <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+        </section>
+    </div>
+    <div class="w-full md:w-1/3 p-4">
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+            <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+        </section>
+    </div>
+    <div class="w-full md:w-1/3 p-4">
+        <section class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-800">Overview</h2>
+            <p class="text-xs text-gray-700">This section provides an overview of the test plan, including objectives, scope, and key details.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
