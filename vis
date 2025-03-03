@@ -1,0 +1,151 @@
+erDiagram
+    PLATFORM {
+        int id PK "Platform ID"
+        string name "Platform naam"
+        json configurations "UI & workflow configuraties"
+    }
+    TEAM {
+        int id PK "Team ID"
+        string name "Team naam"
+        int platform_id FK "Koppeling naar Platform"
+    }
+    MACHINE {
+        int id PK "Machine ID"
+        string name "Machine naam/ID"
+        int platform_id FK "Koppeling naar Platform"
+        int team_id FK "Koppeling naar Team"
+        json attributes "Machine specifieke details"
+    }
+    USER {
+        int id PK "User ID"
+        string email "Uniek e-mailadres"
+        string username "Gebruikersnaam"
+        string name "Volledige naam"
+        bool keyuser "Geeft aan of de gebruiker extra rechten heeft"
+        decimal weekly_hours "Werkuren per week"
+        int platform_id FK "Koppeling naar Platform"
+        int team_id FK "Koppeling naar Team"
+    }
+    ROLE {
+        int id PK "Role ID"
+        string name "Rolnaam (bijv. PO, PE)"
+        string description "Beschrijving van de rol"
+    }
+    PERMISSION {
+        int id PK "Permission ID"
+        string name "Naam van de permissie"
+        string description "Beschrijving"
+    }
+    DASHBOARDCONFIGURATION {
+        int id PK "Dashboard Config ID"
+        int role_id FK "Koppeling naar Role"
+        json configuration "Dashboard instellingen (tiles, shortcuts, links)"
+        datetime last_updated "Laatst bijgewerkt"
+    }
+    RESERVATION {
+        int id PK "Reservation ID"
+        datetime request_date "Aanvraag datum/tijd"
+        datetime test_date "Testdatum"
+        float duration "Testduur"
+        string description "Testbeschrijving"
+        string hardware_changes "Hardware wijzigingen"
+        string software_changes "Software wijzigingen"
+        string status "Status van de reservering"
+        int created_by FK "Aangemaakt door (User)"
+        int machine_id FK "Gekoppelde Machine"
+        int risk_level_id FK "Geselecteerde risiconiveau"
+    }
+    TESTPLAN {
+        int id PK "TestPlan ID"
+        int reservation_id FK "Gekoppeld aan een Reservation"
+        string status "Status van het testplan"
+        json checklist "Checklist data"
+        datetime created_at "Aangemaakt op"
+        datetime updated_at "Laatst bijgewerkt"
+    }
+    TESTPLANSTEP {
+        int id PK "Step ID"
+        int testplan_id FK "Gekoppeld aan TestPlan"
+        int order "Volgorde van de stap"
+        string description "Beschrijving van de stap"
+        string expected_outcome "Verwacht resultaat"
+        string actual_outcome "Werkelijk resultaat"
+        string status "Status van de stap"
+    }
+    TESTPLANREVIEW {
+        int id PK "Review ID"
+        int testplan_id FK "Gekoppeld aan TestPlan"
+        int reviewer_id FK "Reviewer (User)"
+        string comments "Opmerkingen van de reviewer"
+        string review_status "Review status (Approved/Rework/Cancelled)"
+        datetime timestamp "Tijdstip van review"
+    }
+    LOGBOOKENTRY {
+        int id PK "Logbook Entry ID"
+        int reservation_id FK "Gekoppeld aan Reservation"
+        int user_id FK "Actie uitgevoerd door (User)"
+        datetime timestamp "Actietijdstip"
+        string action_type "Type actie"
+        string details "Extra details"
+    }
+    ALLOCATION {
+        int id PK "Allocation ID"
+        int machine_id FK "Gekoppeld aan Machine"
+        int user_id FK "Gekoppeld aan User"
+        string role "Rol binnen de allocatie"
+    }
+    SCHEDULE {
+        int id PK "Schedule ID"
+        int allocation_id FK "Gekoppeld aan Allocation"
+        datetime start_date "Startdatum"
+        datetime end_date "Einddatum"
+        string recurrence_rule "Terugkerende patroon details"
+        json exceptions "Uitzonderingen (bijv. vakanties, sick leave)"
+    }
+    CUSTOMFIELDDEFINITION {
+        int id PK "Custom Field Def. ID"
+        int platform_id FK "Gekoppeld aan Platform"
+        string field_name "Naam van het veld"
+        string field_type "Type veld (text, number, etc.)"
+        string validation_rules "Validatieregels"
+    }
+    CUSTOMFIELDVALUE {
+        int id PK "Custom Field Value ID"
+        int reservation_id FK "Gekoppeld aan Reservation"
+        int custom_field_definition_id FK "Gekoppeld aan CustomFieldDefinition"
+        string value "Ingevoerde waarde"
+    }
+    CATEGORY {
+        int id PK "Category ID"
+        string name "Categorienaam"
+        string description "Beschrijving"
+    }
+    RISKLEVEL {
+        int id PK "RiskLevel ID"
+        int category_id FK "Koppeling naar Category"
+        string level "Risiconiveau (bijv. Low, Medium, High)"
+        int weight "Optioneel numeriek gewicht"
+    }
+    
+    PLATFORM ||--o{ TEAM : "bevat"
+    PLATFORM ||--o{ MACHINE : "bevat"
+    PLATFORM ||--o{ USER : "bevat"
+    PLATFORM ||--o{ CUSTOMFIELDDEFINITION : "definieert"
+    TEAM ||--o{ USER : "heeft"
+    TEAM ||--o{ MACHINE : "heeft"
+    MACHINE ||--o{ RESERVATION : "wordt gebruikt in"
+    MACHINE ||--o{ ALLOCATION : "krijgt"
+    USER ||--o{ RESERVATION : "maakt"
+    USER ||--o{ ALLOCATION : "heeft"
+    USER }|..|{ ROLE : "heeft"
+    ROLE ||--o{ DASHBOARDCONFIGURATION : "configureert"
+    ROLE ||--o{ PERMISSION : "heeft"
+    RESERVATION ||--|| TESTPLAN : "genereert"
+    RESERVATION ||--o{ LOGBOOKENTRY : "logt"
+    RESERVATION ||--o{ CUSTOMFIELDVALUE : "slaat op"
+    TESTPLAN ||--o{ TESTPLANSTEP : "bevat"
+    TESTPLAN ||--o{ TESTPLANREVIEW : "wordt gereviewd door"
+    ALLOCATION ||--|| SCHEDULE : "heeft"
+    CUSTOMFIELDDEFINITION ||--o{ CUSTOMFIELDVALUE : "wordt ingevuld in"
+    CATEGORY ||--o{ RISKLEVEL : "bevat"
+    RISKLEVEL ||--o{ RESERVATION : "wordt gerefereerd door"
